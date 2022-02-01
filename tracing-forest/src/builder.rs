@@ -463,6 +463,20 @@ where
         drop(guard);
         handle.await.expect("failed closing the writing task");
     }
+
+    /// Runs the provided future in the context of a subscriber layered with a
+    /// [`TreeLayer`] and a [`tokio`] runtime. Unlike [`on_future`], this installs
+    /// the [`TreeLayer`] as the global subscriber handler, gathering all log events
+    /// for the duration of your application.
+    ///
+    /// [`TreeLayer`]: crate::layer::TreeLayer
+    pub async fn on_main_future(self, future: impl Future<Output = ()>) {
+        let handle = tokio::spawn(self.extensions.0);
+        let guard = tracing::subscriber::set_global_default(self.subscriber);
+        future.await;
+        // drop(guard);
+        // handle.await.expect("failed closing the writing task");
+    }
 }
 
 impl<S> SubscriberBuilder<S, BlockingExtensions>
